@@ -4,7 +4,7 @@ import xml.etree.ElementTree as etree
 from xml.dom import minidom
 
 import openpyxl
-
+removed_duplicacy_list=[]
 Testtcase_list=[]
 varient_list=[]
 faltu_list=[]
@@ -30,7 +30,7 @@ global description
 global preparation
 global body
 global if_body
-global cycletime
+global constraints_start
 global for_loop_start
 global DLC_check_start
 wb = openpyxl.load_workbook('Sample_TDP.xlsx')
@@ -38,6 +38,97 @@ type(wb)
 sheet = wb.get_sheet_by_name("Template")
 
 #################v2.0#################################
+
+
+def Range_check(local_Range_check):
+    #global local_Range_check
+    print("Range_check")
+    local_Range_check1, local_Range_check2 = local_Range_check.split('=')
+    local_Range_check3,local_Range_check4=local_Range_check1.split('::')
+    local_Range_check5,local_Range_check6=local_Range_check2.split(':')
+    if(local_Range_check3=='sysvar'):
+        statecheck = etree.SubElement(testcase, "statecheck")#fixed
+        statecheck.set('title', 'Response time check')#fixed
+        statecheck.set('wait', '0')#fixed
+        expected = etree.SubElement(statecheck, "expected")#fixed
+        sysvar = etree.SubElement(expected, "sysvar")#fixed
+        sysvar.set('name', local_Range_check3)#fixed
+        sysvar.set('namespace', 'Ta')#fixed
+        range = etree.SubElement(sysvar, "range")#fixed
+        from1 = etree.SubElement(range, "from")#fixed
+        to = etree.SubElement(range, "to")#fixed
+        from1.text = str(local_Range_check5)  # fixed
+        to.text=str(local_Range_check6)#fixed
+    elif(local_Range_check3=='envvar'):
+        statecheck = etree.SubElement(testcase, "statecheck")  # fixed need to chech whicle execution if i need to use statecheck1 insted of statecheck as i used it earlier
+        statecheck.set('title', 'Response time check')  # fixed
+        statecheck.set('wait', '0')  # fixed
+        expected = etree.SubElement(statecheck, "expected")  # fixed
+        envvar = etree.SubElement(expected, "envvar")  # fixed
+        envvar.set('name',local_Range_check4)  # varible
+        range = etree.SubElement(envvar, "range")  # fixed
+        from1 = etree.SubElement(range, "from")#fixed
+        from1.text=str(local_Range_check5)#fixed
+        to = etree.SubElement(range, "to")#fixed
+        to.text=str(local_Range_check6)#fixed
+    else:
+        pass
+    return
+
+def IGN_OFF_ShutDown(local_IGN_OFF_ShutDown):
+    print('IGN_OFF_Wakeup')
+    IGN_OFF_ShutDown = etree.SubElement(testcase, "capltestfunction")
+    IGN_OFF_ShutDown.set('name', 'StateSignal_IGN_OFF_ShutDown')
+    IGN_OFF_ShutDown.set('title', 'IGN_OFF')
+    
+    return
+
+
+def IGN_ON_ShutDown(local_IGN_ON_ShutDown):
+    print('IGN_ON_ShutDown')
+    IGN_ON_ShutDown = etree.SubElement(testcase, "capltestfunction")
+    IGN_ON_ShutDown.set('name', 'StateSignal_IGN_ON_ShutDown')
+    IGN_ON_ShutDown.set('title', 'IGN_ON')
+    
+    return
+
+
+
+
+def IGN_OFF_Wakeup(local_IGN_OFF_Wakeup):
+    print('IGN_OFF_Wakeup')
+    IGN_OFF_Wakeup = etree.SubElement(testcase, "capltestfunction")
+    IGN_OFF_Wakeup.set('name', 'StateSignal_IGN_OFF_Wakeup')
+    IGN_OFF_Wakeup.set('title', 'IGN_OFF')
+    
+    return
+
+
+def IGN_ON_Wakeup(local_IGN_ON_Wakeup):
+    print('IGN_ON_Wakeup')
+    IGN_ON_Wakeup = etree.SubElement(testcase, "capltestfunction")
+    IGN_ON_Wakeup.set('name', 'StateSignal_IGN_ON_Wakeup')
+    IGN_ON_Wakeup.set('title', 'IGN_ON')
+    
+    return
+
+
+def Power_supply_OFF(local_Power_supply_OFF):
+    print('Power_supply_OFF')
+    Power_supply_OFF = etree.SubElement(testcase, "capltestfunction")
+    Power_supply_OFF.set('name', 'OUTPUT_ENABLE_OFF')
+    Power_supply_OFF.set('title', 'Power supply OFF')
+    
+    return
+
+def Power_supply_ON(local_Power_supply_ON):
+    print('Power_supply_ON')
+    Power_supply_ON = etree.SubElement(testcase, "capltestfunction")
+    Power_supply_ON.set('name', 'OUTPUT_ENABLE_ON')
+    Power_supply_ON.set('title', 'Power supply ON')
+    
+    return
+
 
 def DLC_check_stop(local_DLC_check_stop):
     print('DLC_check_stop')
@@ -55,14 +146,16 @@ def DLC_check(local_DLC_check):
         DLC_check.set('title', 'DLC Check')
         DLC_check.set('dir', 'tx')
         canmsg = etree.SubElement(DLC_check, "canmsg")
-        canmsg.set('id', local_DLC_check)
-        canmsg.set('bus', 'tx')
+        canmsg.set('id',local_DLC_check)
+        canmsg.set('bus', 'Main CAN')
     else:
         pass
     return
 
 def DLC_check_start(local_DLC_check_start):
     print('DLC_check_start')
+    global check_DLC_check_start_active
+    global DLC_check_start
     check_DLC_check_start_active=1
     DLC_check_start = etree.SubElement(testcase, "conditions")
     return
@@ -118,9 +211,10 @@ def for_loop_start(local_for_loop_start):
 def Message_Stop(local_Message_Stop):
     print('Message_Stop')
     Message_Stop = etree.SubElement(testcase, "set")
-    Message_Stop.set('title', 'set fault info')
+    Message_Stop.set('title', 'set Message_Stop')
     envvar = etree.SubElement(Message_Stop, "envvar")
     envvar.set('name', 'Message_Send_'+local_Message_Stop)
+    envvar.text='0'
     return
 
 def Generate_increasing_high_priority_bus_load_on_all_CAN_channels(local_Generate_increasing_high_priority_bus_load_on_all_CAN_channels):
@@ -137,27 +231,29 @@ def Generate_increasing_high_priority_bus_load_on_all_CAN_channels(local_Generat
 def constraints_stop(local_constraints_stop):
     print('constraints_stop')
     global check_constraints_start_active
-
     check_constraints_start_active =0
 
     return
 
 def constraints_start(local_constraints_start):
+    global check_constraints_start_active
+    global constraints_start
     print('constraints_start')
     check_constraints_start_active=1
-    cycletime = etree.SubElement(preparation, "constraints")
+    constraints_start = etree.SubElement(testcase, "constraints")
     return
 
 
 def cycletime(local_cycletime):
     print('cycletime')
+    global constraints_start
     global check_constraints_start_active
     cycletime_local_list = []
     cycletime_local_list1=[]
     cycletime_local_list=local_cycletime.split('=')
     cycletime_local_list1=cycletime_local_list[1].split(':')
     if(check_constraints_start_active==1):
-        cycletime_abs = etree.SubElement(cycletime, "cycletime_abs")
+        cycletime_abs = etree.SubElement(constraints_start, "cycletime_abs")
         cycletime_abs.set('title', 'Cycle Time Check')
         cycletime_abs.set('min', cycletime_local_list1[0])
         cycletime_abs.set('max', cycletime_local_list1[1])
@@ -340,7 +436,13 @@ def Message_Send(local_Message_Send):
     for Message_Send_i in range(0,len(local_list_Message_Send)):
         envvar = etree.SubElement(Message_Send, "envvar")
         envvar.set('name', 'Byte_'+str(Message_Send_i))
-        envvar.text=str(local_list_Message_Send[Message_Send_i])
+        envvar.text='0x'+str(local_list_Message_Send[Message_Send_i])
+
+    Message_Send1 = etree.SubElement(testcase, "set")
+    Message_Send1.set('title', 'Message_Send')
+    envvar = etree.SubElement(Message_Send1, "envvar")
+    envvar.set('name', 'Message_Send_'+local_Message_Send1)
+    envvar.text='1'
     return
 
 def Varset(local_Varset):
@@ -413,7 +515,7 @@ def Start_while_loop(local_Start_while_loop):
     while_val = etree.SubElement(vareval, start_local_check_symbol)#while_val is coresponding to lt,ne,gt,ne
     while_val.text=str(Start_while_loop_local2)
     body = etree.SubElement(Start_while_loop, "body")
-    wait = etree.SubElement(Start_while_loop, "wait")
+    wait = etree.SubElement(body, "wait")
     wait.set('title','Wait for 100ms')
     wait.set('time', '100ms')
 
@@ -482,7 +584,7 @@ def if_case(local_if_case):
 
         else:
             if_case = etree.SubElement(body, "choice")
-            if_ = etree.SubElement(if_case, "if")
+            if_ = etree.SubElement(if_case, "if clause")
             condition = etree.SubElement(if_, "condition")
             cansignal = etree.SubElement(condition, "cansignal")
             cansignal.set('name', if_case_local_list[0])
@@ -493,7 +595,7 @@ def if_case(local_if_case):
 
     else:
         if_case = etree.SubElement(testcase, "choice")
-        if_ = etree.SubElement(if_case, "if")
+        if_ = etree.SubElement(if_case, "if clause")
         condition = etree.SubElement(if_, "condition")
         cansignal = etree.SubElement(condition, "cansignal")
         cansignal.set('name', if_case_local_list[0])
@@ -536,9 +638,9 @@ def Set(local_Set):
                 envvar.set('name', local_Set_list1[2]+local_Set_list1[1])
                 #sysvar.set('namespace', local_Set_list1[1]) no need of namespace in envvar
                 envvar.text = str(local_Set_list[1])
-                wait = etree.SubElement(if_body, "wait")
-                wait.set('title', 'waiting variable set delay')
-                wait.set('time', '500us')
+                #wait = etree.SubElement(if_body, "wait")
+                #wait.set('title', 'waiting variable set delay')
+                #wait.set('time', '500us')
                 print('Set envvar is 3')
             elif(len(local_Set_list1)==2):
                 set = etree.SubElement(if_body, "set")
@@ -547,9 +649,9 @@ def Set(local_Set):
                 envvar.set('name', local_Set_list1[2])
                 #sysvar.set('namespace', local_Set_list1[1]) no need of namespace in envvar
                 envvar.text = str(local_Set_list[1])
-                wait = etree.SubElement(if_body, "wait")
-                wait.set('title', 'waiting variable set delay')
-                wait.set('time', '500us')
+                #wait = etree.SubElement(if_body, "wait")
+                #wait.set('title', 'waiting variable set delay')
+                #wait.set('time', '500us')
                 print('Set envvar is 2')
             else:
                 pass
@@ -563,17 +665,49 @@ def Set(local_Set):
             print('varset var set')
 
     else:
-            print('envar execute without if please check')
-            set = etree.SubElement(testcase, "set")
-            set.set('title', 'set environment variable')
-            sysvar = etree.SubElement(set, "sysvar")
-            sysvar.set('name', 'FlagErrorFrame')
-            sysvar.set('namespace', 'Ta')
-            sysvar.text = '1'
-            wait = etree.SubElement(testcase, "wait")
-            wait.set('title', 'waiting variable set delay')
-            wait.set('time', '500us')
-            print('if case is not active in set')
+            # print('envar execute without if please check')
+            # varset = etree.SubElement(testcase, "varset")
+            # varset.set('name', 'loop_idx')
+            # varset.text=str(local_Set_list[1])
+            if (local_Set_list1[0] == 'sysvar'):
+                set = etree.SubElement(testcase, "set")
+                set.set('title', 'set_sysvar_Enviroment')
+                sysvar = etree.SubElement(set, 'sysvar')
+                sysvar.set('name', local_Set_list1[2])
+                sysvar.set('namespace', local_Set_list1[1])
+                sysvar.text = str(local_Set_list[1])
+                wait = etree.SubElement(set, "wait")
+                #wait.set('title', 'waiting variable set delay')
+                #wait.set('time', '500us')
+                print('Set sysvar ')
+            elif (local_Set_list1[0] == 'envvar'):
+                if (len(local_Set_list1) == 3):
+                    set = etree.SubElement(testcase, "set")
+                    set.set('title', 'set_envvar_Enviroment')
+                    envvar = etree.SubElement(set, 'envvar')
+                    envvar.set('name', local_Set_list1[2] + local_Set_list1[1])
+                    # sysvar.set('namespace', local_Set_list1[1]) no need of namespace in envvar
+                    envvar.text = str(local_Set_list[1])
+                    #wait = etree.SubElement(set, "wait")
+                    #wait.set('title', 'waiting variable set delay')
+                    #wait.set('time', '500us')
+                    print('Set envvar is 3')
+                elif (len(local_Set_list1) == 2):
+                    set = etree.SubElement(testcase, "set")
+                    set.set('title', 'set_envvar_Enviroment')
+                    envvar = etree.SubElement(set, 'envvar')
+                    envvar.set('name', local_Set_list1[1])
+                    # sysvar.set('namespace', local_Set_list1[1]) no need of namespace in envvar
+                    envvar.text = str(local_Set_list[1])
+                    #wait = etree.SubElement(set, "wait")
+                    #wait.set('title', 'waiting variable set delay')
+                    #wait.set('time', '500us')
+                    print('Set envvar is 2')
+                else:
+                    pass
+                    print('envvar is not correct')
+
+
     return
 
 def End_if_case(local_End_if_case):
@@ -604,28 +738,28 @@ def DLC(local_DLC):
     return
 
 
-def cycletime(local_cycletime):
-    global value_val
-    print('local_cycletime')
-    local_cycletime1, local_cycletime2 = value_val.split('=')
-    local_cycletime3, local_cycletime4 = local_cycletime2.split(':')
-    constraints = etree.SubElement(testcase, "constraints")
-    cycletime_abs = etree.SubElement(constraints, "cycletime_abs")
-    cycletime_abs.set('title', 'Cycle Time Check')
-    cycletime_abs.set('min', local_cycletime3)
-    cycletime_abs.set('max', local_cycletime4)
-    cycletime_abs.set('variants', "")
-
-
-    canmsg = etree.SubElement(cycletime_abs, "canmsg")
-    canmsg.set('id', local_cycletime1)
-    canmsg.set('bus', 'Main CAN')
-
-    wait = etree.SubElement(testcase, "wait")
-    wait.set('title', 'Wait for 5s')
-    wait.set('time', '5s')
-
-    return
+# def cycletime(local_cycletime): already function define above
+#     global value_val
+#     print('local_cycletime')
+#     local_cycletime1, local_cycletime2 = value_val.split('=')
+#     local_cycletime3, local_cycletime4 = local_cycletime2.split(':')
+#     constraints = etree.SubElement(testcase, "constraints")
+#     cycletime_abs = etree.SubElement(constraints, "cycletime_abs")
+#     cycletime_abs.set('title', 'Cycle Time Check')
+#     cycletime_abs.set('min', local_cycletime3)
+#     cycletime_abs.set('max', local_cycletime4)
+#     cycletime_abs.set('variants', "")
+#
+#
+#     canmsg = etree.SubElement(cycletime_abs, "canmsg")
+#     canmsg.set('id', local_cycletime1)
+#     canmsg.set('bus', 'Main CAN')
+#
+#     wait = etree.SubElement(testcase, "wait")
+#     wait.set('title', 'Wait for 5s')
+#     wait.set('time', '5s')
+#
+#     return
 
 
 
@@ -658,20 +792,20 @@ def FIT(local_FIT):
     FIT = etree.SubElement(testcase, "set")
     FIT.set('title', 'Fault injection trigger')
     envvar = etree.SubElement(FIT, "envvar")
-    envvar.set('name', local_FIT4+'_'+local_FIT3+'_p1')
-    envvar.text=str(0)
+    envvar.set('name', local_FIT4.strip()+'_'+local_FIT3.strip()+'_p1')
+    envvar.text=str(local_FIT2)
     envvar = etree.SubElement(FIT, "envvar")
-    envvar.set('name', local_FIT4 + '_' + local_FIT3 + '_ih')
+    envvar.set('name', local_FIT4.strip() + '_' + local_FIT3.strip()  + '_ih')
     envvar.text =str(0)
     envvar = etree.SubElement(FIT, "envvar")
-    envvar.set('name', local_FIT4 + '_' + local_FIT3 + '_cp')
+    envvar.set('name', local_FIT4.strip()+ '_' + local_FIT3.strip()  + '_cp')
     envvar.text =str(0)
     envvar = etree.SubElement(FIT, "envvar")
-    envvar.set('name', local_FIT4 + '_' + local_FIT3 + '_fd')
+    envvar.set('name', local_FIT4.strip() + '_' + local_FIT3.strip()  + '_fd')
     envvar.text =str(0)
     envvar = etree.SubElement(FIT, "envvar")
-    envvar.set('name', local_FIT4 + '_' + local_FIT3 + '_ft')
-    envvar.text =str(local_FIT2)
+    envvar.set('name', local_FIT4.strip() + '_' + local_FIT3.strip()  + '_ft')
+    envvar.text =str(1)
     wait = etree.SubElement(testcase, "wait")
     wait.set('title', 'waiting variable set dealy')
     wait.set('time', '500us')
@@ -698,7 +832,7 @@ def Check_FaultDetectTime(local_Check_FaultDetectTime):
     Check_FaultDetectTime.set('wait', '0')
     expected = etree.SubElement(Check_FaultDetectTime, "expected")
     sysvar = etree.SubElement(expected, "sysvar")
-    sysvar.set('title', 'FaultDetectTime')
+    sysvar.set('name', 'FaultDetectTime')
     sysvar.set('namespace', 'Ta')
     range = etree.SubElement(sysvar, "range")
     from1 = etree.SubElement(range, "from")
@@ -768,7 +902,7 @@ def Check_Tx_message_Shutdown_Time(local_Check_Tx_message_Shutdown_Time):
     statecheck.set('wait', '0')  # fixed
     expected = etree.SubElement(statecheck, "expected")  # fixed
     envvar = etree.SubElement(expected, "envvar")  # fixed
-    envvar.set('name','Env_'+local_Tx_message_Shutdown_Time1+'_ShutdownDelayTime')  # varible
+    envvar.set('name','Env_'+local_Tx_message_Shutdown_Time1+'_SdnDelayTime')  # varible
     range = etree.SubElement(envvar, "range")  # fixed
     from1 = etree.SubElement(range, "from")#fixed
     from1.text=str(local_Tx_message_Shutdown_Time3)#fixed
@@ -805,7 +939,7 @@ def Check_Tx_message_Startup_Time(local_Check_Tx_message_Startup_Time):
     statecheck.set('wait', '0')  # fixed
     expected = etree.SubElement(statecheck, "expected")  # fixed
     envvar = etree.SubElement(expected, "envvar")  # fixed
-    envvar.set('name','Env_'+local_Tx_message_Startup_Time1+'_WakeUpDelayTime')  # varible
+    envvar.set('name','Env_'+local_Tx_message_Startup_Time1+'_WUpDelayTime')  # varible
     range = etree.SubElement(envvar, "range")  # fixed
     from1 = etree.SubElement(range, "from")#fixed
     from1.text=str(local_Tx_message_Startup_Time3)#fixed
@@ -940,7 +1074,7 @@ def DTC_Check(local_DTC_Read):
     caplparam.set('name', 'expDTC')
     caplparam.set('type', 'string')
     if(DTC_value!=''):
-        local_DTC_value=convert_dtc(DTC_value)
+        local_DTC_value=convert_dtc(str(DTC_value))
         caplparam.text=str(local_DTC_value)
     else:
         pass
@@ -959,7 +1093,7 @@ def Check_variable(local_check_variable):
     cansignal = etree.SubElement(expected, "cansignal")
     cansignal.set('name', check_varible1)
     cansignal.set('msg', 'EPS_ALIVE_CHKSM')
-    cansignal.set('bus', 'MainCAN')
+    cansignal.set('bus', 'Main CAN')
     #cansignal.set('variants', varient_list[main_func_j])#varient name from global list
     cansignal.text=str(local_check_variable2)
 
@@ -968,7 +1102,7 @@ def Check_variable(local_check_variable):
 def Recover_timeout(local_Recover_timeout):
     print("Recover_timeout")
     set = etree.SubElement(testcase, "set")
-    set.set('title', 'set fault info')
+    set.set('title', 'Recover_timeout_info')
     envvar = etree.SubElement(set, "envvar")
     envvar.set('name','Env_'+value_val+'_Timeout')
     envvar.text=str(0)
@@ -1017,7 +1151,8 @@ dict1={'Initialize CAN Interface':Initialize_CAN_Interface,'Wait':Wait,'Operatio
        'Check_FaultDetectTime':Check_FaultDetectTime,'Recover_fault':Recover_fault,'FIT':FIT,'convert_dtc':convert_dtc,'Short':Short,'cycletime':cycletime,'DLC':DLC,'Recover_Short':Recover_Short,'Start_while_loop':Start_while_loop,\
        'if_case':if_case,'END_while_loop':END_while_loop,'Set':Set,'End_if_case':End_if_case,'Message_Send':Message_Send,'Check_value_HighBusLoadMaxPossible':Check_value_HighBusLoadMaxPossible,'Stop_ESC_Tx_monitoring':Stop_ESC_Tx_monitoring,'Generate_decreasing_high_priority_bus_load_on_all_CAN_channels':Generate_decreasing_high_priority_bus_load_on_all_CAN_channels,\
        'Start_ESC_Tx_monitoring':Start_ESC_Tx_monitoring,'Stop_generating_bus_load_test_message':Stop_generating_bus_load_test_message,'Generate_increasing_high_priority_bus_load_on_all_CAN_channels':Generate_increasing_high_priority_bus_load_on_all_CAN_channels,'Message_Stop':Message_Stop,\
-       'DLC_check_stop':DLC_check_stop,'DLC_check':DLC_check,'DLC_check_start':DLC_check_start,'for_loop_stop':for_loop_stop,'Check_signal':Check_signal,'for_loop_start':for_loop_start,'Varset':Varset,'Check_value':Check_value,'constraints_start':constraints_start,'constraints_stop':constraints_stop} #dictionary for generating switch case
+       'DLC_check_stop':DLC_check_stop,'DLC_check':DLC_check,'DLC_check_start':DLC_check_start,'for_loop_stop':for_loop_stop,'Check_signal':Check_signal,'for_loop_start':for_loop_start,'Varset':Varset,'Check_value':Check_value,'constraints_start':constraints_start,'constraints_stop':constraints_stop,\
+       'Power_supply_OFF':Power_supply_OFF,'Power_supply_ON':Power_supply_ON,'Range_check':Range_check,'IGN_OFF_Wakeup':IGN_OFF_Wakeup,'IGN_ON_Wakeup':IGN_ON_Wakeup,'IGN_ON_ShutDown':IGN_ON_ShutDown,'IGN_OFF_ShutDown':IGN_OFF_ShutDown} #dictionary for generating switch case
 
 
 
@@ -1035,10 +1170,12 @@ def sub_engine(sub_engine1,sun_engine2):
     global comd_val
     global value_val
     global testcase
-
+    global DTC_value
     for local_sub_engine_i in range(sub_engine1+1,sun_engine2):
         check_test_case_local=sheet['B' + str(local_sub_engine_i)].value
+
         if(check_test_case_local=='Test case'):
+            DTC_value = sheet['P' + str(local_sub_engine_i)].value #Update DTC based on Test case
             testcase = etree.SubElement(testgroup, "testcase")
             testcase.set('title', sheet['I' + str(local_sub_engine_i)].value)
             testcase.set('ident', sheet['D' + str(local_sub_engine_i)].value)
@@ -1089,7 +1226,7 @@ def Main_Engine(main_arg1,main_arg2):
     global DTC_value
     testgroup = etree.SubElement(root, "testgroup")
     testgroup.set('title',sheet['I' + str(main_arg1)].value)
-    DTC_value = sheet['P' + str(main_arg1 + 1)].value
+   # DTC_value = sheet['P' + str(main_arg1 + 1)].value removing DTC based on heading
     sub_engine(main_arg1,main_arg2) # to get and generated diff functions
     return
 
@@ -1150,10 +1287,12 @@ root.set('xmlns','http://www.vector-informatik.de/CANoe/TestModule/1.25')
 
 
 variants = etree.SubElement(root, "variants")
-for local_variant_i in range(0,len(varient_list)):#set varient_list -1 to remove last 'none' varient from varient list
+
+removed_duplicacy_list=list(set(varient_list))#removed duplicacy in varient data.
+for local_variant_i in range(0,len(removed_duplicacy_list)):#set varient_list -1 to remove last 'none' varient from varient list
     variant = etree.SubElement(variants, "variant")
   #  local_variant_1 = etree.SubElement(variants, "variant")
-    variant.set('name', str(varient_list[local_variant_i]))
+    variant.set('name', str(removed_duplicacy_list[local_variant_i]))
     global_local_variant_i=local_variant_i #for getting varient index at global level
    # local_variant_1.set('name', str(varient_list[1]))
 
