@@ -1,0 +1,1109 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<testmodule title="CAN Communication Test" version="version=1.0" xmlns="http://www.vector-informatik.de/CANoe/TestModule/1.25">
+  <variants>
+    <variant name="Default(varient)1" />
+  </variants>
+  <preparation>
+    <vardef name="BufferDTCList" type="string">NotAssigned</vardef>
+    <vardef name="BufferDTCStatusList" type="string">NotAssigned</vardef>
+    <vardef name="loop_idx" type="int">0</vardef>
+  </preparation>
+  <testgroup title="Preparation">
+    <testcase ident="T_CAN_1" title="Basic check - Start CAN Interface" variants="Default(varient)1">
+      <description>Basic check - Start CAN Interface</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_1</caplparam>
+        </capltestfunction>
+      </preparation>
+      <capltestfunction name="InitAllVar" title="Initialize_CAN_Interface_val" />
+      <wait time="1ms" title="waiting" />
+      <capltestfunction name="ReleaseInitVarState" title="Release init state" />
+      <wait time="1s" title="waiting" />
+      <capltestfunction name="OUTPUT_ENABLE_OFF" title="Power supply OFF" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+      <capltestfunction name="OUTPUT_ENABLE_ON" title="Power supply ON" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />		  
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">14</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="1s" title="waiting" />
+    </testcase>
+  </testgroup>
+  <testgroup title="CAN Communication Check">
+    <testcase ident="T_CAN_2" title="Cycle Time Check" variants="Default(varient)1">
+      <description>Cycle Time Check</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_2</caplparam>
+        </capltestfunction>
+      </preparation>
+      <constraints>
+        <cycletime_abs max="110" min="90" title="Cycle Time Check" variants="Default(varient)1">
+          <canmsg bus="Main CAN" id="EPS_ALIVE_CHKSM" />
+        </cycletime_abs>
+        <cycletime_abs max="12" min="8" title="Cycle Time Check" variants="Default(varient)1">
+          <canmsg bus="Main CAN" id="EPS_SAS" />
+        </cycletime_abs>
+      </constraints>
+      <wait time="5s" title="waiting" />
+    </testcase>
+    <testcase ident="T_CAN_3" title="DLC Check" variants="Default(varient)1">
+      <description>DLC Check</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_3</caplparam>
+        </capltestfunction>
+      </preparation>
+      <conditions>
+        <dlc_ok dir="tx" title="DLC Check">
+          <canmsg bus="Main CAN" id="EPS_ALIVE_CHKSM" />
+        </dlc_ok>
+        <dlc_ok dir="tx" title="DLC Check">
+          <canmsg bus="Main CAN" id="EPS_SAS" />
+        </dlc_ok>
+      </conditions>
+      <wait time="5s" title="waiting" />
+    </testcase>
+  </testgroup>
+  <testgroup title="Startup and Shut down Test">
+    <testcase ident="T_CAN_22" title="Startup Test" variants="Default(varient)1">
+      <description>Startup Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_22</caplparam>
+        </capltestfunction>
+      </preparation>
+	  <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="Wakeup">0x01</envvar>
+      </set>
+      <capltestfunction name="StateSignal_IGN_OFF_Wakeup" title="IGN_OFF" />
+      <wait time="1ms" title="waiting" />
+      <wait time="3s" title="waiting" />	  
+      <capltestfunction name="StateSignal_IGN_ON_Wakeup" title="IGN_ON" />
+      <wait time="1ms" title="waiting" />
+      <wait time="3s" title="waiting" />
+      <statecheck title="Response time check" wait="0">
+        <expected>
+          <envvar name="WakeUp_Time_EPS_SAS">
+            <range>
+              <from>150</from>
+              <to>250</to>
+            </range>
+          </envvar>
+        </expected>
+      </statecheck>	  
+      <statecheck title="Response time check" wait="0">
+        <expected>
+          <envvar name="WakeUp_Time_EPS_ALIVE_CHKSM">
+            <range>
+              <from>150</from>
+              <to>250</to>
+            </range>
+          </envvar>
+        </expected>
+      </statecheck>	  
+ </testcase>
+    <testcase ident="T_CAN_23" title="Shutdown Test" variants="Default(varient)1">
+      <description>Shutdown Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_23</caplparam>
+        </capltestfunction>
+      </preparation>
+	  <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="ShutDown">0x01</envvar>
+      </set>
+      <capltestfunction name="StateSignal_IGN_OFF_Shutdown" title="IGN_OFF" />
+      <wait time="1ms" title="waiting" />
+      <wait time="3s" title="waiting" />	  
+      <capltestfunction name="StateSignal_IGN_ON_Shutdown" title="IGN_ON" />
+      <wait time="1ms" title="waiting" />
+      <wait time="3s" title="waiting" />
+      <statecheck title="Response time check" wait="0">
+        <expected>
+          <envvar name="ShutDown_Time_EPS_SAS">
+            <range>
+              <from>150</from>
+              <to>250</to>
+            </range>
+          </envvar>
+        </expected>
+      </statecheck>
+      <statecheck title="Response time check" wait="0">
+        <expected>
+          <envvar name="ShutDown_Time_EPS_ALIVE_CHKSM">
+            <range>
+              <from>150</from>
+              <to>250</to>
+            </range>
+          </envvar>
+        </expected>
+      </statecheck>	 	  
+    </testcase>
+  </testgroup>
+  <testgroup title="CAN Timeout Test ">
+    <testcase ident="T_CAN_4" title="DME_DATA_PWTR_2 Timeout Test" variants="Default(varient)1">
+      <description>DME_DATA_PWTR_2 Timeout Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_4</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="set fault info">
+        <envvar name="Env_DME_DATA_PWTR_2_Timeout">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="6100ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x01</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 60 87 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover_timeout_info">
+        <envvar name="Env_DME_DATA_PWTR_2_Timeout">0</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="100ms" title="waiting" />
+    </testcase>
+    <testcase ident="T_CAN_5" title="EPBi_V_VEH Timeout Test" variants="Default(varient)1">
+      <description>EPBi_V_VEH Timeout Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_5</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="set fault info">
+        <envvar name="Env_EPBi_V_VEH_Timeout">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="660ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x01</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 61 87 01</caplparam>
+      </capltestfunction>
+      <wait time="550ms" title="waiting" />
+      <set title="Recover_timeout_info">
+        <envvar name="Env_EPBi_V_VEH_Timeout">0</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="100ms" title="waiting" />
+    </testcase>
+    <testcase ident="T_CAN_6" title="IC_MILEAGE Timeout Test" variants="Default(varient)1">
+      <description>IC_MILEAGE Timeout Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_6</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="set fault info">
+        <envvar name="Env_IC_MILEAGE_Timeout">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="660ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 63 87 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover_timeout_info">
+        <envvar name="Env_IC_MILEAGE_Timeout">0</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_7" title="IC_TIME_DATE Timeout Test" variants="Default(varient)1">
+      <description>IC_TIME_DATE Timeout Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_7</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="set fault info">
+        <envvar name="Env_IC_TIME_DATE_Timeout">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="6s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 63 87 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover_timeout_info">
+        <envvar name="Env_IC_TIME_DATE_Timeout">0</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+  </testgroup>
+  <testgroup title="CAN Invalid Signal Test ">
+    <testcase ident="T_CAN_8" title="ST_DRV_VEH Invalid signal Test" variants="Default(varient)1">
+      <description>ST_DRV_VEH Invalid signal Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_8</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_p1">0xFF</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ih">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_cp">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_fd">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="6s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 70 86 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover from signal fault">
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ft">0</envvar>
+      </set>
+      <wait time="100ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_9" title="V_VEH_COG Invalid signal Test" variants="Default(varient)1">
+      <description>V_VEH_COG Invalid signal Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_9</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="V_VEH_COG_EPBi_V_VEH_p1">0xFFFF</envvar>
+        <envvar name="V_VEH_COG_EPBi_V_VEH_ih">0</envvar>
+        <envvar name="V_VEH_COG_EPBi_V_VEH_cp">0</envvar>
+        <envvar name="V_VEH_COG_EPBi_V_VEH_fd">0</envvar>
+        <envvar name="V_VEH_COG_EPBi_V_VEH_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 71 86 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover from signal fault">
+        <envvar name="V_VEH_COG_EPBi_V_VEH_ft">0</envvar>
+      </set>
+      <wait time="100ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_10" title="QU_V_VEH_COG Invalid signal Test" variants="Default(varient)1">
+      <description>QU_V_VEH_COG Invalid signal Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_10</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="QU_V_VEH_COG_EPBi_V_VEH_p1">0xF</envvar>
+        <envvar name="QU_V_VEH_COG_EPBi_V_VEH_ih">0</envvar>
+        <envvar name="QU_V_VEH_COG_EPBi_V_VEH_cp">0</envvar>
+        <envvar name="QU_V_VEH_COG_EPBi_V_VEH_fd">0</envvar>
+        <envvar name="QU_V_VEH_COG_EPBi_V_VEH_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 71 86 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover from signal fault">
+        <envvar name="QU_V_VEH_COG_EPBi_V_VEH_ft">0</envvar>
+      </set>
+      <wait time="100ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_11" title="CRC_V_VEH Invalid signal Test" variants="Default(varient)1">
+      <description>CRC_V_VEH Invalid signal Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_11</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_p1">0xFF</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_ih">0</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_cp">0</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_fd">0</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 72 86 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover from signal fault">
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_ft">0</envvar>
+      </set>
+      <wait time="100ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_12" title="ALIV_V_VEH Invalid signal Test" variants="Default(varient)1">
+      <description>ALIV_V_VEH Invalid signal Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_12</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="ALIV_V_VEH_EPBi_V_VEH_p1">0xF</envvar>
+        <envvar name="ALIV_V_VEH_EPBi_V_VEH_ih">0</envvar>
+        <envvar name="ALIV_V_VEH_EPBi_V_VEH_cp">0</envvar>
+        <envvar name="ALIV_V_VEH_EPBi_V_VEH_fd">0</envvar>
+        <envvar name="ALIV_V_VEH_EPBi_V_VEH_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="500ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 72 86 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover from signal fault">
+        <envvar name="ALIV_V_VEH_EPBi_V_VEH_ft">0</envvar>
+      </set>
+      <wait time="100ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="1s" title="waiting" />
+    </testcase>
+  </testgroup>
+  <testgroup title="Battery High/Low Voltage test">
+    <testcase ident="T_CAN_20" title="Battery High Voltage test" variants="Default(varient)1">
+      <description>Battery High Voltage test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_20</caplparam>
+        </capltestfunction>
+      </preparation>
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">14</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="5s" title="waiting" />
+	  <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="1s" title="waiting" />
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">17</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+	  <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="1s" title="waiting" />	  
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">52 59 17 01</caplparam>
+      </capltestfunction>
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">14</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_21" title="Battery Low Voltage test" variants="Default(varient)1">
+      <description>Battery Low Voltage test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_21</caplparam>
+        </capltestfunction>
+      </preparation>
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">14</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+	  <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="1s" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="1s" title="waiting" />
+	  <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_p1">0x82</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ih">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_cp">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_fd">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="1s" title="waiting" />
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">8</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+	  <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+      <wait time="6s" title="waiting" />	  
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">52 60 16 01</caplparam>
+      </capltestfunction>
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <set title="Set Voltage">
+        <envvar name="Set_Voltage">14</envvar>
+      </set>
+      <capltestfunction name="PowerSupplyChange" title="Power supply" />
+      <wait time="1ms" title="waiting" />
+      <wait time="4s" title="waiting" />
+	  <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_p1">0x83</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ih">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_cp">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_fd">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ft">1</envvar>
+      </set>
+	  <wait time="500ms" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_p1">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ih">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_cp">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_fd">0</envvar>
+        <envvar name="ST_DRV_VEH_DME_DATA_PWTR_2_ft">0</envvar>
+      </set>	  
+      <wait time="500us" title="waiting variable set dealy" />
+	  <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+  </testgroup>
+  <testgroup title="Bus off Test">
+    <testcase ident="T_CAN_24" title="CANH short to CANL" variants="Default(varient)1">
+      <description>CANH short to CANL</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_24</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="1s" title="waiting" />
+      <capltestfunction name="Short_CAN_HtoCAN_L_Func_MainCAN" title="ShortCAN_HtoCAN_LRecover" />
+      <wait time="4000ms" title="waiting" />
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 80 88 01</caplparam>
+      </capltestfunction>
+	  <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_25" title="CANH short to GRND" variants="Default(varient)1">
+      <description>CANH short to GRND</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_25</caplparam>
+        </capltestfunction>
+      </preparation>
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="1s" title="waiting" />
+      <capltestfunction name="Short_CAN_HtoGRND_Func_MainCAN" title="ShortCAN_HtoGRND" />
+      <wait time="4000ms" title="waiting" />
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 80 88 01</caplparam>
+      </capltestfunction>
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+    <testcase ident="T_CAN_26" title="CANL short to BATT" variants="Default(varient)1">
+      <description>CANL short to BATT</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_26</caplparam>
+        </capltestfunction>
+      </preparation>
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="1s" title="waiting" />
+      <capltestfunction name="Short_CAN_LtoBATT_Func_MainCAN" title="ShortCAN_LtoBATTRecover" />
+      <wait time="4000ms" title="waiting" />
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 80 88 01</caplparam>
+      </capltestfunction>
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <wait time="500ms" title="waiting" />
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+  </testgroup>
+  <testgroup title="Checksum Test">
+    <testcase ident="T_CAN_27" title="CRC_V_ VEH Checksum Test" variants="Default(varient)1">
+      <description>CRC_V_ VEH Checksum Test</description>
+      <preparation>
+        <capltestfunction name="LogFileChangeTrigger" title="Change logging file name">
+          <caplparam name="fname" type="string">T_CAN_27</caplparam>
+        </capltestfunction>
+      </preparation>
+      <wait time="1s" title="waiting" />
+      <set title="Fault injection trigger">
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_p1">0x02</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_ih">0</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_cp">0</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_fd">0</envvar>
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_ft">1</envvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <wait time="550ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x1</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 72 86 01</caplparam>
+      </capltestfunction>
+      <wait time="500ms" title="waiting" />
+      <set title="Recover from signal fault">
+        <envvar name="CRC_V_VEH_EPBi_V_VEH_ft">0</envvar>
+      </set>
+      <wait time="500ms" title="waiting" />
+      <statecheck title="Check EPS_EpasFailed" wait="0">
+        <expected>
+          <cansignal bus="Main CAN" msg="EPS_ALIVE_CHKSM" name="EPS_EpasFailed">0x0</cansignal>
+        </expected>
+      </statecheck>
+      <varset name="BufferDTCList">NA</varset>
+      <diagservice ecu="EPS_M8X" reportservicedetails="always" service="FaultMemory_Read_identified_errors" title="Check DTC">
+        <diagrequest>
+          <diagparam qualifier="DtcStatusbyte">0xff</diagparam>
+        </diagrequest>
+        <diagresponse>
+          <diagparam copytovar="BufferDTCList" format="bytesequence" qualifier="ListOfDTCAndStatus">
+            <ne>99</ne>
+          </diagparam>
+        </diagresponse>
+      </diagservice>
+      <set title="Copy DTC List to system variable">
+        <sysvar name="DTCList" namespace="Ta">
+          <var name="BufferDTCList" />
+        </sysvar>
+      </set>
+      <wait time="500us" title="waiting variable set dealy" />
+      <capltestfunction name="CompareDTCList" title="Compare DTC:">
+        <caplparam name="expDTC" type="string">D2 72 86 00</caplparam>
+      </capltestfunction>	  
+      <diagservice ecu="EPS_M8X" service="FaultMemory_Clear_all_errors" title="Clear DTC">
+        <diagrequest>
+          <diagparam qualifier="GroupOfDtc">All groups</diagparam>
+        </diagrequest>
+        <diagresponse />
+      </diagservice>
+    </testcase>
+  </testgroup>
+  <completion>
+    <capltestfunction name="TestGroupCompletion" title="test completion" />
+  </completion>
+</testmodule>
